@@ -1,0 +1,14 @@
+{
+  "name": "mcdiscordbot",
+  "version": "1.0.0",
+  "description": "a minecraft discord bot",
+  "main": "MCDiscordBot.js",
+  "scripts": {
+    "test": "make test"
+  },
+  "author": "sam clark",
+  "license": "MIT",
+  "dependencies": {
+    "discord": "^0.8.2"
+  }
+}
