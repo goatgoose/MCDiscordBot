@@ -1,15 +1,18 @@
 
 function ServerLogLine(rawLine) {
-    this.timestamp = rawLine.substring(1, rawLine.indexOf("]"));
-    rawLine = rawLine.substring(this.timestamp.length + 4); // end of bracket + whitespace + first thread bracket
+    this.rawLine = rawLine;
+    var rawCopy = rawLine;
 
-    this.thread = rawLine.substring(0, rawLine.indexOf("/"));
-    rawLine = rawLine.substring(this.thread.length + 1); // + slash
+    this.timestamp = rawCopy.substring(1, rawCopy.indexOf("]"));
+    rawCopy = rawCopy.substring(this.timestamp.length + 4); // end of bracket + whitespace + first thread bracket
 
-    this.priority = rawLine.substring(0, rawLine.indexOf("]"));
-    rawLine = rawLine.substring(this.priority.length + 3); // + bracket + colon + whitespace
+    this.thread = rawCopy.substring(0, rawCopy.indexOf("/"));
+    rawCopy = rawCopy.substring(this.thread.length + 1); // + slash
 
-    this.content = rawLine;
+    this.priority = rawCopy.substring(0, rawCopy.indexOf("]"));
+    rawCopy = rawCopy.substring(this.priority.length + 3); // + bracket + colon + whitespace
+
+    this.content = rawCopy;
 
     if (this.content[0] == "<") { // its a player message
         this.logType = ServerLogLine.LogType.PLAYER_MESSAGE;
@@ -45,6 +48,11 @@ function ServerLogLine(rawLine) {
                     this.content.includes("has been demolished") ||
                     this.content.includes("withered")) {
             this.logType = ServerLogLine.LogType.PLAYER_DEATH;
+        } else if (this.thread.includes("Netty Server IO") && this.content.includes("PLAY:")) {
+            this.logType = ServerLogLine.LogType.PACKET;
+        } else if (this.content.includes("Time is ")) {
+            this.logType = ServerLogLine.LogType.TIME_UPDATE;
+            this.content = parseInt(this.content.substring(8));
         }
     }
 }
@@ -55,7 +63,9 @@ ServerLogLine.LogType = {
     SERVER_STOP: 2,
     PLAYER_JOIN: 3,
     PLAYER_LEAVE: 4,
-    PLAYER_DEATH: 5
+    PLAYER_DEATH: 5,
+    PACKET: 6,
+    TIME_UPDATE: 7
 };
 
 module.exports = ServerLogLine;
