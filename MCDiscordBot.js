@@ -18,11 +18,12 @@ var ServerLogLine = require('./ServerLogLine');
 //   - with a title?
 
 var MC_VERSION = "1.12-pre7";
-var DO_SEND_TO_CHANNEL = true;
+var DO_SEND_TO_CHANNEL = false;
 
 var serverInstance;
 
 var timeQueryQueue = [];
+var sleepTimerId = -1;
 
 function getChannel(channelName) {
     var channels = client.channels.array();
@@ -86,7 +87,7 @@ client.on('ready', function() {
                         serverInstance.stdin.write("title @a actionbar " + JSON.stringify(sleepTitle) + "\n");
 
                         // notify discord users if someone slept and its daytime now
-                        if (sleepTimerId != null) { // reset if existing (maintains efficiency because first in bed waits for last in bed - only fails if someone is sleeping, someone else starts sleeping and resets it and then logs out)
+                        if (sleepTimerId != -1) { // reset if existing (maintains efficiency because first in bed waits for last in bed - only fails if someone is sleeping, someone else starts sleeping and resets it and then logs out)
                             clearInterval(sleepTimerId);
                         }
                         setTimeout(function() { // initial delay of 5 seconds
@@ -98,10 +99,12 @@ client.on('ready', function() {
                                         // TODO only send if someone logged out right before?
                                         sendToServerChannel(":sun_with_face: :sun_with_face: It's daytime now! :sun_with_face: :sun_with_face:");
                                         clearInterval(sleepTimerId);
+                                        sleepTimerId = -1;
                                     }
                                 });
                                 if (count > 120) { // wait 60 seconds before they give up on sleeping
                                     clearInterval(sleepTimerId);
+                                    sleepTimerId = -1;
                                 }
                             }, 500);
                         }, 5 * 1000 + 50);
