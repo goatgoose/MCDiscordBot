@@ -18,7 +18,7 @@ var ServerLogLine = require('./ServerLogLine');
 //   - with a title?
 
 var MC_VERSION = "1.12-pre7";
-var DO_SEND_TO_CHANNEL = false;
+var DO_SEND_TO_CHANNEL = true;
 
 var serverInstance;
 
