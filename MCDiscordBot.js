@@ -78,19 +78,34 @@ client.on('ready', function() {
                     sendToServerChannel(logLine.content);
                     break;
                 case ServerLogLine.LogType.PACKET:
-                    // notify users that someone has slept
                     if (logLine.content.includes("PLAY:47")) { // use bed
-                        setTimeout(function() {
-                            getServerTime(function (time) {
-                                if (time < 13000) {
-                                    // only send if someone logged out right before?
-                                    sendToServerChannel("It's daytime now! :sun_with_face: :sun_with_face:");
+                        var sleepTitle = {
+                            text: "A player is attempting to sleep...",
+                            italic: true
+                        };
+                        serverInstance.stdin.write("title @a actionbar " + JSON.stringify(sleepTitle) + "\n");
+
+                        // notify discord users if someone slept and its daytime now
+                        setTimeout(function() { // initial dealy of 5 seconds
+                            var count = 0;
+                            var id = setInterval(function() { // check for day every .5 seconds
+                                count++;
+                                getServerTime(function (time) {
+                                    if (time < 13000) {
+                                        // TODO only send if someone logged out right before?
+                                        sendToServerChannel("It's daytime now! :sun_with_face: :sun_with_face:");
+                                        clearInterval(id);
+                                    }
+                                });
+                                if (count > 120) { // wait 60 seconds before they give up on sleeping
+                                    clearInterval(id);
                                 }
-                            })
+                            }, 500);
                         }, 5 * 1000 + 50);
                     }
                     break;
                 case ServerLogLine.LogType.TIME_UPDATE:
+                    console.log("time update");
                     timeQueryQueue.pop()(logLine.content);
                     break;
             }
