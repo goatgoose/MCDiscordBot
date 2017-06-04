@@ -93,7 +93,7 @@ client.on('ready', function() {
                                 getServerTime(function (time) {
                                     if (time < 13000) {
                                         // TODO only send if someone logged out right before?
-                                        sendToServerChannel("It's daytime now! :sun_with_face: :sun_with_face:");
+                                        sendToServerChannel(":sun_with_face: :sun_with_face: It's daytime now! :sun_with_face: :sun_with_face:");
                                         clearInterval(id);
                                     }
                                 });
