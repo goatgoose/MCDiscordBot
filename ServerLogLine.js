@@ -48,7 +48,7 @@ function ServerLogLine(rawLine) {
                     this.content.includes("has been demolished") ||
                     this.content.includes("withered")) {
             this.logType = ServerLogLine.LogType.PLAYER_DEATH;
-        } else if (this.thread.includes("Netty Server IO") && this.content.includes("PLAY:")) {
+        } else if (this.content.includes("PLAY:")) {
             this.logType = ServerLogLine.LogType.PACKET;
         } else if (this.content.includes("Time is ")) {
             this.logType = ServerLogLine.LogType.TIME_UPDATE;

@@ -14,6 +14,8 @@ var ServerLogLine = require('./ServerLogLine');
 //   x @goatgoose1142: test message
 //   - color name with discord color
 // - @someone for discord notification
+// let everyone know someone is trying to sleep
+//   - with a title?
 
 var MC_VERSION = "1.12-pre7";
 var DO_SEND_TO_CHANNEL = true;
