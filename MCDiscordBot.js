@@ -90,24 +90,22 @@ client.on('ready', function() {
                         if (sleepTimerId != -1) { // reset if existing (maintains efficiency because first in bed waits for last in bed - only fails if someone is sleeping, someone else starts sleeping and resets it and then logs out)
                             clearInterval(sleepTimerId);
                         }
-                        setTimeout(function() { // initial delay of 5 seconds
-                            var count = 0;
-                            sleepTimerId = setInterval(function() { // check for day every .5 seconds
-                                count++;
-                                getServerTime(function (time) {
-                                    if (time < 13000) {
-                                        // TODO only send if someone logged out right before?
-                                        sendToServerChannel(":sun_with_face: :sun_with_face: It's daytime now! :sun_with_face: :sun_with_face:");
-                                        clearInterval(sleepTimerId);
-                                        sleepTimerId = -1;
-                                    }
-                                });
-                                if (count > 120) { // wait 60 seconds before they give up on sleeping
+                        var count = 0;
+                        sleepTimerId = setInterval(function() { // check for day every .5 seconds
+                            count++;
+                            getServerTime(function (time) {
+                                if (time < 13000) {
+                                    // TODO only send if someone logged out right before?
+                                    sendToServerChannel(":sun_with_face: :sun_with_face: It's daytime now! :sun_with_face: :sun_with_face:");
                                     clearInterval(sleepTimerId);
                                     sleepTimerId = -1;
                                 }
-                            }, 500);
-                        }, 5 * 1000 + 50);
+                            });
+                            if (count > 120) { // wait 60 seconds before they give up on sleeping
+                                clearInterval(sleepTimerId);
+                                sleepTimerId = -1;
+                            }
+                        }, 500);
                     }
                     break;
                 case ServerLogLine.LogType.TIME_UPDATE:
