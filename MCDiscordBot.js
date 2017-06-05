@@ -2,11 +2,15 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 var spawn = require('child_process').spawn;
 var ServerLogLine = require('./ServerLogLine');
+var Verifier = require('./Verifier');
+var MCCommand = require('./MCCommand');
+var DiscordCommand = require('./DiscordCommand');
+var UserManager = require('./UserManager');
 
 // TODO
 // - commands for me only
 // x dedicated text channel for cross conversing and server communication logs
-// - make some commands available for all (command wrapper?)
+// - make some commands available for all (title wrapper?)
 // x death notifications
 // - pin server status
 // x add timestamps back
@@ -14,39 +18,20 @@ var ServerLogLine = require('./ServerLogLine');
 //   x @goatgoose1142: test message
 //   - color name with discord color
 // - @someone for discord notification
-// let everyone know someone is trying to sleep
-//   - with a title?
+// x let everyone know someone is trying to sleep
+//   x with a title?
 
 var MC_VERSION = "1.12-pre7";
-var DO_SEND_TO_CHANNEL = true;
+var DO_SEND_TO_CHANNEL = false;
 
 var serverInstance;
 
 var timeQueryQueue = [];
 var sleepTimerId = -1;
 
-function getChannel(channelName) {
-    var channels = client.channels.array();
-    for (var channel in channels) {
-        if (channels[channel].name == channelName) {
-            return channels[channel];
-        }
-    }
-    return undefined;
-}
+var userManager = new UserManager("verifiedUsers.json");
 
-function sendToServerChannel(message) {
-    if (DO_SEND_TO_CHANNEL) {
-        getChannel("server").send(message);
-    } else {
-        console.log("WOULD SEND TO CHANNEL: " + message);
-    }
-}
-
-function getServerTime(callback) {
-    serverInstance.stdin.write("time query daytime" + "\n");
-    timeQueryQueue.push(callback);
-}
+client.login('MzIwMDUzNDIzODI5NDE3OTg3.DBJ43w.U1GaTdH001wtPiUc50HwFzTrvKY');
 
 client.on('ready', function() {
     console.log('discord app init');
@@ -126,22 +111,52 @@ client.on('ready', function() {
 });
 
 client.on('message', function(message) {
-    if (message.channel.name == "server" && message.author.username != "mc-bot") {
-        var output = ["", {
-            text: "@" + message.author.username + ":",
-            hoverEvent: {
-                action: "show_text",
-                value: "From Discord"
-            },
-            bold: false,
-            color: "aqua"
-        }, {
-            text: " " + message.content
-        }];
-        var toSend = "tellraw @a " + JSON.stringify(output);
-        serverInstance.stdin.write(toSend + "\n");
-        console.log(toSend);
+    if (message.startsWith(DiscordCommand.COMMAND_SIGNAL)) {
+        var command = new DiscordCommand(message.content);
+        switch (command.title) {
+            case "verify":
+
+                break;
+        }
+    } else {
+        if (message.channel.name == "server" && message.author.username != "mc-bot") {
+            var output = ["", {
+                text: "@" + message.author.username + ":",
+                hoverEvent: {
+                    action: "show_text",
+                    value: "From Discord"
+                },
+                bold: false,
+                color: "aqua"
+            }, {
+                text: " " + message.content
+            }];
+            var toSend = "tellraw @a " + JSON.stringify(output);
+            serverInstance.stdin.write(toSend + "\n");
+            console.log(toSend);
+        }
     }
 });
 
-client.login('MzIwMDUzNDIzODI5NDE3OTg3.DBJ43w.U1GaTdH001wtPiUc50HwFzTrvKY');
+function getChannel(channelName) {
+    var channels = client.channels.array();
+    for (var channel in channels) {
+        if (channels[channel].name == channelName) {
+            return channels[channel];
+        }
+    }
+    return undefined;
+}
+
+function getServerTime(callback) {
+    serverInstance.stdin.write("time query daytime" + "\n");
+    timeQueryQueue.push(callback);
+}
+
+function sendToServerChannel(message) {
+    if (DO_SEND_TO_CHANNEL) {
+        getChannel("server").send(message);
+    } else {
+        console.log("WOULD SEND TO CHANNEL: " + message);
+    }
+}
