@@ -1,3 +1,4 @@
+var MCCommand = require('./MCCommand');
 
 function ServerLogLine(rawLine) {
     this.rawLine = rawLine;
@@ -16,6 +17,13 @@ function ServerLogLine(rawLine) {
 
     if (this.content[0] == "<") { // its a player message
         this.logType = ServerLogLine.LogType.PLAYER_MESSAGE;
+
+        var messageContents = this.content.split(" ");
+        if (messageContents.length > 1) {
+            if (messageContents[1].startsWith(MCCommand.COMMAND_SIGNAL)) { // jk its actually a command
+                this.logType = ServerLogLine.LogType.COMMAND;
+            }
+        }
     } else {
         if (this.content.includes("Done")) { // the server just started
             this.logType = ServerLogLine.LogType.SERVER_START;
@@ -27,7 +35,7 @@ function ServerLogLine(rawLine) {
             this.logType = ServerLogLine.LogType.PLAYER_LEAVE;
 
         // http://minecraft.gamepedia.com/Health#Death_messages
-        } else if ( this.content.includes("was") ||
+        } else if ( this.content.includes("was") || // this is too general
                     this.content.includes("hugged a cactus") ||
                     this.content.includes("walked into a") ||
                     this.content.includes("drowned") ||
@@ -65,7 +73,8 @@ ServerLogLine.LogType = {
     PLAYER_LEAVE: 4,
     PLAYER_DEATH: 5,
     PACKET: 6,
-    TIME_UPDATE: 7
+    TIME_UPDATE: 7,
+    COMMAND: 8
 };
 
 module.exports = ServerLogLine;

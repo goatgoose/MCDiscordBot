@@ -20,8 +20,10 @@ var UserManager = require('./UserManager');
 // - @someone for discord notification
 // x let everyone know someone is trying to sleep
 //   x with a title?
+// - change bot username to mc username
+//   - do actual discord verification so bot could post as discord user
 
-var MC_VERSION = "1.12-pre7";
+var MC_VERSION = "1.12";
 var DO_SEND_TO_CHANNEL = false;
 
 var serverInstance;
@@ -37,6 +39,7 @@ client.on('ready', function() {
     console.log('discord app init');
     process.chdir("mcserver");
     serverInstance = spawn("java", ["-Dlog4j.configurationFile=alldebug.xml", "-jar", "minecraft_server." + MC_VERSION + ".jar", "nogui"]);
+    process.chdir("../");
 
     serverInstance.stdout.on('data', function(stdout) {
         var out = stdout.toString().trim().split("\n");
@@ -97,6 +100,34 @@ client.on('ready', function() {
                     console.log("time update");
                     timeQueryQueue.pop()(logLine.content);
                     break;
+                case ServerLogLine.LogType.COMMAND:
+                    var command = new MCCommand(logLine.content);
+                    switch (command.title) {
+                        case "verify":
+                            if (userManager.getVerifiedUserByMCUser(command.user) != null) {
+                                printToServerAsServer("You are already verified!");
+                                break;
+                            }
+                            if (command.args.length != 1) {
+                                printToServerAsServer("Invalid usage: type '#verify' in discord to start the verification process.");
+                                break;
+                            }
+                            var verifier = userManager.getPendingVerifierByToken(command.args[0]);
+                            if (verifier != null) {
+                                if (command.args[0] == verifier.token) {
+                                    verifier.addMCUser(command.user);
+                                    userManager.finishVerification(verifier);
+                                    printToServerAsServer("You have been verified!");
+                                }
+                            } else {
+                                printToServerAsServer("Invalid token. Type '#verify' in discord to start the verification process.");
+                            }
+                            break;
+                        default:
+                            printToServerAsServer("Invalid command.");
+                            break;
+                    }
+                    break;
             }
         }
     });
@@ -111,16 +142,36 @@ client.on('ready', function() {
 });
 
 client.on('message', function(message) {
-    if (message.startsWith(DiscordCommand.COMMAND_SIGNAL)) {
+    if (message.content.startsWith(DiscordCommand.COMMAND_SIGNAL)) {
         var command = new DiscordCommand(message.content);
         switch (command.title) {
             case "verify":
+                if (command.args.length != 0) {
+                    message.channel.send("Invalid usage: type '#verify' to start the verification process.");
+                    break;
+                }
+                if (userManager.getVerifiedUserByDiscordUser(message.author.username) == null) {
+                    if (userManager.getPendingVerifierByDiscordUser(message.author.user) == null) {
+                        var verifier = new Verifier();
+                        verifier.addDiscorUser(message.author.username);
+                        userManager.startVerification(verifier);
 
+                        if (message.channel.type != "dm") {
+                            message.channel.send("The verification process has been started! Your verification code has been sent.")
+                        }
+                        message.author.send("Your verification code is: `" + verifier.token + "`\n\n" +
+                            "In minecraft, type '#verify " + verifier.token + "' to confirm your username.");
+                    } else {
+                        message.channel.send("You are already in the process of being verified! Check your DMs for more information.");
+                    }
+                } else {
+                    message.channel.send("You are already verified! :ok_hand:");
+                }
                 break;
         }
     } else {
         if (message.channel.name == "server" && message.author.username != "mc-bot") {
-            var output = ["", {
+            var output = [{
                 text: "@" + message.author.username + ":",
                 hoverEvent: {
                     action: "show_text",
@@ -131,12 +182,26 @@ client.on('message', function(message) {
             }, {
                 text: " " + message.content
             }];
-            var toSend = "tellraw @a " + JSON.stringify(output);
-            serverInstance.stdin.write(toSend + "\n");
-            console.log(toSend);
+            printToServer(output);
         }
     }
 });
+
+function printToServerAsServer(message) {
+    var toSend = [{
+        text: "[Server] " + message
+    }];
+    printToServer(toSend, "@a");
+}
+
+function printToServer(toSend, selector) {
+    if (selector == undefined) {
+        selector = "@a";
+    }
+    var emptyList = [""];
+    toSend = emptyList.concat(toSend);
+    serverInstance.stdin.write("tellraw " + selector + " " + JSON.stringify(toSend) + "\n");
+}
 
 function getChannel(channelName) {
     var channels = client.channels.array();

@@ -1,20 +1,42 @@
 
+var fs = require('fs');
+
 function UserManager(verifiedUsersPath) {
     this.verifiedUsersPath = verifiedUsersPath;
-    this.verifiedUsers = [];
-    this.pendingVerifiers = [];
-    this.serverConnectedUsers = [];
 
-    this.updateVerifiedUsers();
+    this.verifiedUsers = [];
+
+    var verifiedUsersFile = fs.readFileSync(this.verifiedUsersPath, 'utf8');
+    if (verifiedUsersFile.length > 0) {
+        this.verifiedUsers = JSON.parse(verifiedUsersFile);
+    }
+
+    this.pendingVerifiers = [];
+    this.connectedUsers = [];
+    this.recentlyDisconnectedUsers = []; // for daytime notifications
 }
 
-UserManager.prototype.updateVerifiedUsers = function() {
-    // read from disk and load to verifiedUsers
+UserManager.prototype.startVerification = function(verifier) {
+    this.pendingVerifiers.push(verifier);
 };
 
-UserManager.prototype.getPendingVerifierByMCUser = function(mcUser) {
+UserManager.prototype.finishVerification = function(verifier) {
+    if (verifier.user.isVerified()) {
+        this.pendingVerifiers.splice(this.pendingVerifiers.indexOf(verifier), 1);
+        this.addVerifiedUser(verifier.user);
+    }
+};
+
+UserManager.prototype.addVerifiedUser = function(user) {
+    this.verifiedUsers.push(user);
+    fs.writeFile(this.verifiedUsersPath, JSON.stringify(this.verifiedUsers, null, 4), {flag: 'w'}, function(error) {
+        console.log("saved file");
+    });
+};
+
+UserManager.prototype.getPendingVerifierByToken = function(token) {
     for (var i = 0; i < this.pendingVerifiers.length; i++) {
-        if (this.pendingVerifiers[i].mcUser == mcUser) {
+        if (this.pendingVerifiers[i].token == token) {
             return this.pendingVerifiers[i];
         }
     }
@@ -23,11 +45,10 @@ UserManager.prototype.getPendingVerifierByMCUser = function(mcUser) {
 
 UserManager.prototype.getPendingVerifierByDiscordUser = function(discordUser) {
     for (var i = 0; i < this.pendingVerifiers.length; i++) {
-        if (this.pendingVerifiers[i].discordUser == discordUser) {
+        if (this.pendingVerifiers[i].user.discordUser == discordUser) {
             return this.pendingVerifiers[i];
         }
     }
-    return null;
 };
 
 UserManager.prototype.getVerifiedUserByMCUser = function(mcUser) {
