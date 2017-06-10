@@ -7,23 +7,6 @@ var MCCommand = require('./MCCommand');
 var DiscordCommand = require('./DiscordCommand');
 var UserManager = require('./UserManager');
 
-// TODO
-// - commands for me only
-// x dedicated text channel for cross conversing and server communication logs
-// - make some commands available for all (title wrapper?)
-// x death notifications
-// - pin server status
-// x add timestamps back
-// x new discord to server format
-//   x @goatgoose1142: test message
-//   - color name with discord color
-// - @someone for discord notification
-// x let everyone know someone is trying to sleep
-//   x with a title?
-// x change bot username to mc username
-//   - do actual discord verification so bot could post as discord user
-//   - change profile picture to mc skin (took too long)
-
 var MC_VERSION = "1.12";
 var DO_SEND_TO_CHANNEL = true;
 var CHANGE_NICKNAME = false; // discord changes back the nickname so the names are removed from the log
