@@ -1,21 +1,20 @@
 
 var COMMAND_SIGNAL = "#";
 
-function MCCommand(rawLine) {
-    this.rawLine = rawLine;
-    var rawLineArray = rawLine.split(" ");
+function MCCommand(user, content) {
+    this.user = user;
+    this.content = content;
 
-    this.user = rawLineArray.shift();
-    this.user = this.user.substring(1, this.user.length - 1); // remove < >
+    var contentArray = content.split(" ");
 
-    for (var i = 0; i < rawLineArray.length; i++) {
-        rawLineArray[i] = rawLineArray[i].toLowerCase();
+    for (var i = 0; i < contentArray.length; i++) {
+        contentArray[i] = contentArray[i].toLowerCase();
     }
 
-    this.title = rawLineArray.shift();
+    this.title = contentArray.shift();
     this.title = this.title.substring(COMMAND_SIGNAL.length);
 
-    this.args = rawLineArray;
+    this.args = contentArray;
 }
 
 MCCommand.COMMAND_SIGNAL = COMMAND_SIGNAL;

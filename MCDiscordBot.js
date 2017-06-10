@@ -20,11 +20,14 @@ var UserManager = require('./UserManager');
 // - @someone for discord notification
 // x let everyone know someone is trying to sleep
 //   x with a title?
-// - change bot username to mc username
+// x change bot username to mc username
 //   - do actual discord verification so bot could post as discord user
+//   - change profile picture to mc skin
 
 var MC_VERSION = "1.12";
-var DO_SEND_TO_CHANNEL = false;
+var DO_SEND_TO_CHANNEL = true;
+var USER_ID = "320053423829417987";
+var BOT_NAME = "mc-bot";
 
 var serverInstance;
 
@@ -49,7 +52,7 @@ client.on('ready', function() {
 
             switch (logLine.logType) {
                 case ServerLogLine.LogType.PLAYER_MESSAGE:
-                    sendToServerChannel("[" + logLine.timestamp + "] " + logLine.content);
+                    sendToServerChannel(logLine.content, logLine.user);
                     break;
                 case ServerLogLine.LogType.SERVER_START:
                     sendToServerChannel("@everyone The server was just launched! If you do not wish to receive push notifications for server events, disable notifications for the 'server' channel in Notification Settings at the top left. To talk to players on the server, simply send a message in this channel.");
@@ -101,7 +104,7 @@ client.on('ready', function() {
                     timeQueryQueue.pop()(logLine.content);
                     break;
                 case ServerLogLine.LogType.COMMAND:
-                    var command = new MCCommand(logLine.content);
+                    var command = new MCCommand(logLine.user, logLine.content);
                     switch (command.title) {
                         case "verify":
                             if (userManager.getVerifiedUserByMCUser(command.user) != null) {
@@ -218,9 +221,19 @@ function getServerTime(callback) {
     timeQueryQueue.push(callback);
 }
 
-function sendToServerChannel(message) {
+function sendToServerChannel(message, as) {
+    var bot = client.guilds.array()[0].members.get(USER_ID);
     if (DO_SEND_TO_CHANNEL) {
-        getChannel("server").send(message);
+        var channel = getChannel("server");
+        if (as != undefined) {
+            bot.setNickname(as);
+            setTimeout(function() {
+                channel.send(message);
+                bot.setNickname(BOT_NAME);
+            }, 100);
+        } else {
+            channel.send(message);
+        }
     } else {
         console.log("WOULD SEND TO CHANNEL: " + message);
     }

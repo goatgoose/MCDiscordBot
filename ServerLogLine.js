@@ -14,9 +14,13 @@ function ServerLogLine(rawLine) {
     rawCopy = rawCopy.substring(this.priority.length + 3); // + bracket + colon + whitespace
 
     this.content = rawCopy;
+    this.user = null;
 
     if (this.content[0] == "<") { // its a player message
         this.logType = ServerLogLine.LogType.PLAYER_MESSAGE;
+
+        this.user = this.content.substring(1, this.content.indexOf(">"));
+        this.content = this.content.substring(this.user.length + 3); // + space
 
         var messageContents = this.content.split(" ");
         if (messageContents.length > 1) {
