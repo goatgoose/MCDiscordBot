@@ -26,6 +26,7 @@ var UserManager = require('./UserManager');
 
 var MC_VERSION = "1.12";
 var DO_SEND_TO_CHANNEL = true;
+var CHANGE_NICKNAME = false; // discord changes back the nickname so the names are removed from the log
 var BOT_NAME = "mc-bot";
 var BOT_ICON = "VoHiYo.png";
 
@@ -59,7 +60,11 @@ client.on('ready', function() {
 
             switch (logLine.logType) {
                 case ServerLogLine.LogType.PLAYER_MESSAGE:
-                    sendToServerChannel(logLine.content, logLine.user);
+                    if (CHANGE_NICKNAME) {
+                        sendToServerChannel(logLine.content, logLine.user);
+                    } else {
+                        sendToServerChannel("[" + logLine.timestamp + "] <" + logLine.user + "> " + logLine.content);
+                    }
                     break;
                 case ServerLogLine.LogType.SERVER_START:
                     sendToServerChannel("@everyone The server was just launched! If you do not wish to receive push notifications for server events, disable notifications for the 'server' channel in Notification Settings at the top left. To talk to players on the server, simply send a message in this channel.");
@@ -232,22 +237,27 @@ function sendToServerChannel(message, as) {
     var bot = client.guilds.array()[0].members.get(client.user.id);
     if (DO_SEND_TO_CHANNEL) {
         var channel = getChannel("server");
-        if (as != undefined) {
-            if (bot.nickname != as) {
-                bot.setNickname(as).then(function() {
+        if (CHANGE_NICKNAME) {
+            if (as != undefined) {
+                if (bot.nickname != as) {
+                    bot.setNickname(as).then(function() {
+                        channel.send(message);
+                    });
+                } else { // if the nickname is still the same don't change again (reduces chat lag)
                     channel.send(message);
-                });
-            } else { // if the nickname is still the same don't change again (reduces chat lag)
+                }
+
+                if (resetNameTimerId != -1) {
+                    clearTimeout(resetNameTimerId);
+                }
+                resetNameTimerId = setTimeout(function() {
+                    bot.setNickname(BOT_NAME);
+                    resetNameTimerId = -1;
+                }, 5 * 1000);
+            } else {
                 channel.send(message);
             }
 
-            if (resetNameTimerId != -1) {
-                clearTimeout(resetNameTimerId);
-            }
-            resetNameTimerId = setTimeout(function() {
-                bot.setNickname(BOT_NAME);
-                resetNameTimerId = -1;
-            }, 5 * 1000);
         } else {
             channel.send(message);
         }
