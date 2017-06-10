@@ -25,7 +25,7 @@ var UserManager = require('./UserManager');
 //   - change profile picture to mc skin (took too long)
 
 var MC_VERSION = "1.12";
-var DO_SEND_TO_CHANNEL = false;
+var DO_SEND_TO_CHANNEL = true;
 var BOT_NAME = "mc-bot";
 var BOT_ICON = "VoHiYo.png";
 
@@ -33,6 +33,8 @@ var serverInstance;
 
 var timeQueryQueue = [];
 var sleepTimerId = -1;
+
+var resetNameTimerId = -1;
 
 var userManager = new UserManager("verifiedUsers.json");
 
@@ -222,7 +224,7 @@ function getChannel(channelName) {
 }
 
 function getServerTime(callback) {
-    serverInstance.stdin.write("time query daytime" + "\n");
+    serverInstance.stdin.write("time query daytime\n");
     timeQueryQueue.push(callback);
 }
 
@@ -231,10 +233,21 @@ function sendToServerChannel(message, as) {
     if (DO_SEND_TO_CHANNEL) {
         var channel = getChannel("server");
         if (as != undefined) {
-            bot.setNickname(as).then(function() {
+            if (bot.nickname != as) {
+                bot.setNickname(as).then(function() {
+                    channel.send(message);
+                });
+            } else { // if the nickname is still the same don't change again (reduces chat lag)
                 channel.send(message);
+            }
+
+            if (resetNameTimerId != -1) {
+                clearTimeout(resetNameTimerId);
+            }
+            resetNameTimerId = setTimeout(function() {
                 bot.setNickname(BOT_NAME);
-            });
+                resetNameTimerId = -1;
+            }, 5 * 1000);
         } else {
             channel.send(message);
         }
