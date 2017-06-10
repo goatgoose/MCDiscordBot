@@ -9,6 +9,7 @@ var UserManager = require('./UserManager');
 
 var MC_VERSION = "1.12";
 var DO_SEND_TO_CHANNEL = true;
+var DO_SEND_ALERTS = false;
 var CHANGE_NICKNAME = false; // discord changes back the nickname so the names are removed from the log
 var BOT_NAME = "mc-bot";
 var BOT_ICON = "VoHiYo.png";
@@ -46,11 +47,15 @@ client.on('ready', function() {
                     if (CHANGE_NICKNAME) {
                         sendToServerChannel(logLine.content, logLine.user);
                     } else {
-                        sendToServerChannel("[" + logLine.timestamp + "] <" + logLine.user + "> " + logLine.content);
+                        sendToServerChannel("[" + logLine.timestamp + "] **<" + logLine.user + ">** `" + logLine.content + "`");
                     }
                     break;
                 case ServerLogLine.LogType.SERVER_START:
-                    sendToServerChannel("@everyone The server was just launched! If you do not wish to receive push notifications for server events, disable notifications for the 'server' channel in Notification Settings at the top left. To talk to players on the server, simply send a message in this channel.");
+                    var message = "The server was just launched! If you do not wish to receive push notifications for server events, disable notifications for the 'server' channel in Notification Settings at the top left. To talk to players on the server, simply send a message in this channel.";
+                    if (DO_SEND_ALERTS) {
+                        message = "@everyone " + message;
+                    }
+                    sendToServerChannel(message);
                     break;
                 case ServerLogLine.LogType.SERVER_STOP:
                     sendToServerChannel("The server has been stopped.");
