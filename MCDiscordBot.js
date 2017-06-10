@@ -226,11 +226,10 @@ function sendToServerChannel(message, as) {
     if (DO_SEND_TO_CHANNEL) {
         var channel = getChannel("server");
         if (as != undefined) {
-            bot.setNickname(as);
-            setTimeout(function() {
+            bot.setNickname(as).then(function() {
                 channel.send(message);
                 bot.setNickname(BOT_NAME);
-            }, 100);
+            });
         } else {
             channel.send(message);
         }
