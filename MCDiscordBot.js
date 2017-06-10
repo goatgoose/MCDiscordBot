@@ -22,11 +22,12 @@ var UserManager = require('./UserManager');
 //   x with a title?
 // x change bot username to mc username
 //   - do actual discord verification so bot could post as discord user
-//   - change profile picture to mc skin
+//   - change profile picture to mc skin (took too long)
 
 var MC_VERSION = "1.12";
 var DO_SEND_TO_CHANNEL = false;
 var BOT_NAME = "mc-bot";
+var BOT_ICON = "VoHiYo.png";
 
 var serverInstance;
 
@@ -39,6 +40,11 @@ client.login('MzIwMDUzNDIzODI5NDE3OTg3.DBJ43w.U1GaTdH001wtPiUc50HwFzTrvKY');
 
 client.on('ready', function() {
     console.log('discord app init');
+
+    // reset changeable things in case server shut off before it changed back
+    client.guilds.array()[0].members.get(client.user.id).setNickname(BOT_NAME);
+    client.user.setAvatar(BOT_ICON);
+
     process.chdir("mcserver");
     serverInstance = spawn("java", ["-Dlog4j.configurationFile=alldebug.xml", "-jar", "minecraft_server." + MC_VERSION + ".jar", "nogui"]);
     process.chdir("../");
