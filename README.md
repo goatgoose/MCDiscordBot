@@ -1,9 +1,9 @@
 # MCDiscordBot
 
 ## TODO list / features
-- [ ] commands for me only
 - [x] dedicated text channel for cross conversing and server communication logs
 - [ ] make some commands available for all (title wrapper?)
+  - [ ] commands granted for certain permissions only
 - [ ] stdin sent to MCDiscordBot will be sent directly into server stdin
   - [ ] write output of just that command back to MCDiscordBot stdout
 - [x] death notifications
