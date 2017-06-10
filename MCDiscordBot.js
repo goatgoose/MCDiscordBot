@@ -25,8 +25,7 @@ var UserManager = require('./UserManager');
 //   - change profile picture to mc skin
 
 var MC_VERSION = "1.12";
-var DO_SEND_TO_CHANNEL = true;
-var USER_ID = "320053423829417987";
+var DO_SEND_TO_CHANNEL = false;
 var BOT_NAME = "mc-bot";
 
 var serverInstance;
@@ -222,7 +221,7 @@ function getServerTime(callback) {
 }
 
 function sendToServerChannel(message, as) {
-    var bot = client.guilds.array()[0].members.get(USER_ID);
+    var bot = client.guilds.array()[0].members.get(client.user.id);
     if (DO_SEND_TO_CHANNEL) {
         var channel = getChannel("server");
         if (as != undefined) {
