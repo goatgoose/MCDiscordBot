@@ -23,8 +23,8 @@ function ServerLogLine(rawLine) {
         this.content = this.content.substring(this.user.length + 3); // + space
 
         var messageContents = this.content.split(" ");
-        if (messageContents.length > 1) {
-            if (messageContents[1].startsWith(MCCommand.COMMAND_SIGNAL)) { // jk its actually a command
+        if (messageContents.length > 0) {
+            if (messageContents[0].startsWith(MCCommand.COMMAND_SIGNAL)) { // jk its actually a command
                 this.logType = ServerLogLine.LogType.COMMAND;
             }
         }
