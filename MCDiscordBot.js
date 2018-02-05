@@ -35,7 +35,8 @@ client.on('ready', function() {
     client.user.setAvatar(BOT_ICON);
 
     process.chdir("mcserver");
-    serverInstance = spawn("java", ["-Dlog4j.configurationFile=alldebug.xml", "-jar", "minecraft_server." + MC_VERSION + ".jar", "nogui"]);
+    // serverInstance = spawn("java", ["-Dlog4j.configurationFile=alldebug.xml", "-jar", "minecraft_server." + MC_VERSION + ".jar", "nogui"]);
+    serverInstance = spawn("./ServerStart.sh");
     process.chdir("../");
 
     serverInstance.stdout.on('data', function(stdout) {
