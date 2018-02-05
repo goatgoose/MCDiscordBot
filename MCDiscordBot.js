@@ -1,6 +1,7 @@
 const Discord = require('discord.js');
 const client = new Discord.Client();
 var spawn = require('child_process').spawn;
+var fs = require('fs');
 var ServerLogLine = require('./ServerLogLine');
 var Verifier = require('./Verifier');
 var MCCommand = require('./MCCommand');
@@ -9,10 +10,11 @@ var UserManager = require('./UserManager');
 
 var MC_VERSION = "1.12";
 var DO_SEND_TO_CHANNEL = true;
-var DO_SEND_ALERTS = true;
+var DO_SEND_ALERTS = false;
 var CHANGE_NICKNAME = false; // discord changes back the nickname so the names are removed from the log
 var BOT_NAME = "mc-bot";
 var BOT_ICON = "VoHiYo.png";
+var SERVER_CHANNEL = "mute-this-one";
 
 var serverInstance;
 
@@ -23,7 +25,7 @@ var resetNameTimerId = -1;
 
 var userManager = new UserManager("verifiedUsers.json");
 
-client.login('MzIwMDUzNDIzODI5NDE3OTg3.DBJ43w.U1GaTdH001wtPiUc50HwFzTrvKY');
+client.login(fs.readFileSync("token.txt", 'utf8'));
 
 client.on('ready', function() {
     console.log('discord app init');
@@ -51,7 +53,7 @@ client.on('ready', function() {
                     }
                     break;
                 case ServerLogLine.LogType.SERVER_START:
-                    var message = "The server was just launched! If you do not wish to receive push notifications for server events, disable notifications for the 'server' channel in Notification Settings at the top left. To talk to players on the server, simply send a message in this channel.";
+                    var message = "The server was just launched! If you do not wish to receive push notifications for server events, disable notifications for the " + SERVER_CHANNEL + " channel in Notification Settings at the top left. To talk to players on the server, simply send a message in this channel.";
                     if (DO_SEND_ALERTS) {
                         message = "@everyone " + message;
                     }
@@ -174,7 +176,7 @@ client.on('message', function(message) {
                 break;
         }
     } else {
-        if (message.channel.name == "server" && message.author.username != "mc-bot") {
+        if (message.channel.name == SERVER_CHANNEL && message.author.username != "mc-bot") {
             var output = [{
                 text: "@" + message.author.username + ":",
                 hoverEvent: {
@@ -225,7 +227,7 @@ function getServerTime(callback) {
 function sendToServerChannel(message, as) {
     var bot = client.guilds.array()[0].members.get(client.user.id);
     if (DO_SEND_TO_CHANNEL) {
-        var channel = getChannel("server");
+        var channel = getChannel(SERVER_CHANNEL);
         if (CHANGE_NICKNAME) {
             if (as != undefined) {
                 if (bot.nickname != as) {
